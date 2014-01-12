@@ -18,11 +18,20 @@ def fetch_profile(x,platform):
     print "Fetching profile of",blog+'...'
     if platform == "lj":
 	if blog.startswith('_') or blog.endswith('_'):
-	    content = urlopen('http://users.livejournal.com/%s/data/foaf' % blog,None,headers).read().decode('utf-8')
+	    try:
+		content = urlopen('http://users.livejournal.com/%s/data/foaf' % blog,None,headers).read().decode('utf-8')
+	    except:
+		content = "trash in profile,sorry"
 	else:
-	    content = urlopen('http://%s.livejournal.com/data/foaf' % blog,None,headers).read().decode('utf-8')
+	    try:
+		content = urlopen('http://%s.livejournal.com/data/foaf' % blog,None,headers).read().decode('utf-8')
+	    except:
+		content = "trash in profile,sorry"
     elif platform == "ljr":
-	content = urlopen('http://lj.rossia.org/users/%s/data/foaf' % blog,None,headers).read().decode('utf-8')
+	try:
+	    content = urlopen('http://lj.rossia.org/users/%s/data/foaf' % blog,None,headers).read().decode('utf-8')
+	except:
+	    content = "trash in profile,sorry"
     d = codecs.open('%s_profile' % blog, 'w+', 'utf-8')
     d.write(content)
     d.close()
@@ -37,6 +46,9 @@ def socanalyzer():
     if request.method == "POST":
 	try:
 	    argument  = request.form['blog']
+	    argument = argument.replace('http://','')
+	    argument = argument.replace('.livejournal.com','')
+	    argument = argument.replace('-','_')
 	    argument2 = request.form['platform']
 	    argprof = argument+"_profile"
 	    os.chdir('/var/www/websocgraph/')
@@ -47,6 +59,7 @@ def socanalyzer():
 		os.chdir('profiles/ljr')
 	    elif argument2 == "lj":
 		os.chdir('profiles/')
+	    
 	    existing = os.listdir(".")
 
 	    if not argprof in existing:
@@ -69,8 +82,9 @@ def socanalyzer():
 		fulldata.append(data)
 
 	    output = ljgraph(fulldata,argument,argument2)
-	    return render_template('wsg.html', blogger = argument, platform = argument2, userpic = userpic, vnumber1=output[0][0],enumber1=output[0][1],vmaxbet1=output[0][2][1],emaxbet1=output[0][3][2:],core1=output[0][4],vnumber2=output[1][0],enumber2=output[1][1],vmaxbet2=output[1][2][1],emaxbet2=output[1][3][2:],core2=output[1][4])
+	    return render_template('wsg.html', blogger = argument, platform = argument2, userpic = userpic, vnumber1=output[0][0],enumber1=output[0][1],vmaxbet1=output[0][2][1],emaxbet1=output[0][3][2:],core1=output[0][4],communities1 = output[0][5],vnumber2=output[1][0],enumber2=output[1][1],vmaxbet2=output[1][2][1],emaxbet2=output[1][3][2:],core2=output[1][4], communities2=output[1][5])
 	except:
+	    logging.exception('')
 	    error_value = "Error!"
 	    return render_template("wsg.html", error=error_value)
     return render_template("wsg.html")

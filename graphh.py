@@ -67,7 +67,7 @@ def ljgraph(data,target,platform):
 	vertex["comments"] = bloggers[name2]["comments"]
 	vertex["pic"] = bloggers[name2]["pic"]
 	if vertex["name"] == target:
-	    vertex["color"] = "black"
+	    vertex["color"] = "green"
 	    vertex["shape"] = "diamond"
     
     for i in bloggers:
@@ -111,8 +111,11 @@ def ljgraph(data,target,platform):
 	vertexnumber = len(g.vs)
 	edgesnumber = len(g.es)
 	maxbetweenness = (maxbet, g.vs[g.betweenness().index(maxbet)]["name"])
-	[(one,two)] = [g.es[idx].tuple for idx, eb in enumerate(g.edge_betweenness()) if eb == max_eb]
-	maxedgebetweenness = (one,two,g.vs[one]["name"],g.vs[two]["name"])
+	try:
+	    [(one,two)] = [g.es[idx].tuple for idx, eb in enumerate(g.edge_betweenness()) if eb == max_eb]
+	    maxedgebetweenness = (one,two,g.vs[one]["name"],g.vs[two]["name"])
+	except:
+	    maxedgebetweenness = ["error"]
 	#print "Components:",'\n',g.components(),'\n'
 	maxcore = max(g.shell_index())
 	core = g.k_core(maxcore)
@@ -142,20 +145,20 @@ def ljgraph(data,target,platform):
 
 	if typeg == "target":
 	    communities_spinglass = g.community_spinglass()
-	    #print "Communities spinglass:", communities_spinglass
+	    communities = len(communities_spinglass)
 	    modularity_spinglass = g.modularity(communities_spinglass)
 	    plot(communities_spinglass,'/var/www/websocgraph/static/img/'+target+"_"+typeg+'_spinglass.svg', **visual_style)
 	    #print "Modularity Spinglass:",modularity_spinglass
 	else:
 	    communities_infomap = g.community_infomap(vertex_weights="posts", trials=10)
-    	    #print "Communities Infomap:", communities_infomap
+    	    communities = len(communities_infomap)
     	    modularity_infomap = g.modularity(communities_infomap)
 	    plot(communities_infomap,'/var/www/websocgraph/static/img/'+target+"_"+typeg+'_infomap.svg', **visual_style)
 	    #print "Modularity Infomap:",modularity_infomap
     
 	plot(communities_walktrap,'/var/www/websocgraph/static/img/'+target+"_"+typeg+'_walktrap.svg',orientation="vertical", **visual_style)
 
-	return vertexnumber,edgesnumber,maxbetweenness,maxedgebetweenness,maxcore
+	return vertexnumber,edgesnumber,maxbetweenness,maxedgebetweenness,maxcore,communities
     a = processgraph(g,"target")
     visual_style_top = {}
     visual_style_top["vertex_color"] = "orange"
